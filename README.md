@@ -1,11 +1,16 @@
 ## Important disclaimer for testers
-We appreciate your time testing Bunkr. Please note that during this testing phase, we ask you not to use Bunkr in any production scenarios or to store any sensible data that may cause you problems if lost or exposed. You should assume that as part of our testing, we may delete all of the information that you keep inside.
+We appreciate your time testing Bunkr. Please note that during this testing phase, we ask you not to use Bunkr for any production scenarios or to store any information that may cause you problems if lost or exposed. You should assume that as part of our testing, we may delete all of the information that you keep inside.
 
-For any issues or ideas, please do not hesitate to open an Issue within this repository.
+Bunkr's beta is intended to gather feedback on the usage and possibilities of an application for the custody of a vast range of secrets. We know it is still rough around the edges but we would like to get to know what you think of our big picture.
+
+For any questions, ideas or problems, please use GitHub to open an Issue within this repository.
 
 We have been working really hard for a long time to bring Bunkr to you and we are very excited that this is happening. 
 
 Thanks a lot for your support!
+
+### What is the connection between Blink and Bunkr?
+Bunkr and Blink are separated companies and teams. The original idea for Bunkr actually preceded Blink, and it was about handling secrets within development teams. Although there are now some solutions, we think they are all complex to use or not adecquate. We see Bunkr as not just a solution to this original problem, but going beyond in a world of other possibilities too.
 
 # What is Bunkr
 
@@ -13,29 +18,29 @@ Bunkr is a command line interface and accompanying mobile application for secure
 
 ## Bunkr App (mobile)
 
-The current mobile app has been stripped down to showcase the functionality of signing with a SSH key from Blink Shell. For extended functionality, we recommend to use the CLI for Bunkr. An accompanying version of Blink Shell for testers is required as well.
+The current mobile app has been stripped down to showcase the functionality of signing with an SSH key from Blink Shell. For extended functionality, we recommend to use the CLI for Bunkr. 
 
-Please make sure both Blink Shell and Bunkr are installed on the same device. Bunkr requires to sign in to verify the identity of the Device.
+Please make sure both Blink Shell and Bunkr are installed on the same device. Blink requires a new TestFlight version which includes the `bunkr` command. Bunkr requires to sign in to verify the identity of the Device.
 
-### Creating and Using a Bunkr key within Blink
+### Creating and using a Bunkr key within Blink
 
-To create a Bunkr SSH key, use the `bunkr keygen <name>` command within Blink. This will give instructions to Bunkr to create a secret shared ECDSA key that can only currently be accessed from this device.
+To create a Bunkr SSH key, use the `bunkr keygen <name>` command within Blink. This will give instructions to Bunkr to create a secret shared ECDSA-256 key that can only currently be accessed by the client it was created.
 
 To use this key for login, first copy the Public Key to `.ssh/authorized_keys` on the host you would like to access. You can find the Public Key on Blink within config > Keys > <name>. *Please Note*, do not try to copy the private key as it is currently broken.
 
-Subsequently, run `ssh-agent` in Blink. After that you should be good to connect to the server by running `ssh user@host` or `mosh user@host`. Blink will forward the signature request to the Bunkr app and upon success, you will be signed into the remote machine. 
+Subsequently, run `ssh-agent` in Blink. After that you should be good to connect to the server by running `ssh user@host` or `mosh user@host`. You should see Blink forwarding the signature request to the Bunkr app to request your permission for signing, and upon success, you will be logged in.
 
 The magic within Bunkr makes it so that the Bunkr app also didn't perform the signature. Your signature was completed by a coalition of machines, each only holding a share of your private key, *and without reconstructing the original key on any device or on any computer process*.
 
 ### Sharing a Private Key with other devices
 
-Bunkr makes it possible to use a single Private Key *from* multiple devices in a secure way. As the Private Key is never recomposed, you can be sure none of the devices will leak any sensible information. This greatly simplifies Key Management by displacing it from the servers into Bunkr. If you lose one of your devices, just revoke the Signature capability of that device in your Bunkr instead of changing configuration in all your servers and services.
+Bunkr makes it possible to use a single Private Key *from* multiple devices in a secure way. As the Private Key is never recomposed during signature, you can only grant signature capabilities to other devices and still be in control of the key. This greatly simplifies Key Management by displacing it from the servers into Bunkr. If you lose one of your devices, just revoke the Signature capability of that device in your Bunkr instead of changing configuration in all your servers and services.
 
-To share a key with other devices, first you need to [obtain the Identity of those devices](###send-device). Then within Bunkr app Open the Key by tapping on it. Within the Capabilities section you should see a single capability for the current device. Tap on /Add/ to grant a capability to the other device. A second Capability should now show up within the Secret screen, and you have to manually send it to the new device. To do so, tap on the new Capability and the iOS Sharing Sheet will pop out. *Please Note* that capabilities are attached to the Identity of a device, so they are safe to share over messages, email, etc...
+To share a key with other devices, first you need to [obtain the Identity of those devices](#send-device). Then within Bunkr app Open the Key by tapping on it. Within the Capabilities section you should see a single capability for the current device. Tap on /Add/ to grant a capability to the other device. A second Capability should now show up within the Secret screen, and you have to manually send it to the new device. To do so, tap on the new Capability and the iOS Sharing Sheet will pop out. *Please Note* that capabilities are attached to the Identity of a device, so they are safe to share over messages, email, etc...
 
 To receive the capability on the other device:
 * On iOS, it will happen automatically by just opening the link. 
-* Within the CLI, please check out [receive-capability](###receive-capability).
+* Within the CLI, please check out [receive-capability](#receive-capability).
 
 You can see how easy it is to control access by just tapping on the Grant/Revoke button.
 
@@ -137,6 +142,14 @@ As an example we can use the create and write commands to store a Bitcoin Privat
 >>> write myBitcoinKey b64 3ABFM/7485746283498BFAC/2==;
 ```
 
+### delete
+
+To delete a Bunkr Secret execute:
+
+`>>> delete <secret name>;`
+
+This command completely removes a secret from Bunkr. This includes all information about permissions, and any secret data. This operation is only permitted for an Admin on the secret
+
 ## Sharing secrets between devices
 
 ### send-device
@@ -189,14 +202,6 @@ Provided the device actually has been granted some abilities on the secret, this
 If a third party device has given you capability on one of their secrets you will need to import that capability. Execute:
 
 `>>> receive-capability < url > (optional: <custom secret name>);`
-
-### delete
-
-To delete a Bunkr Secret execute:
-
-`>>> delete <secret name>;`
-
-This command completely removes a secret from Bunkr. This includes all information about permissions, and any secret data. This operation is only permitted for an Admin on the secret
 
 ## Bunkr CLI config
 
